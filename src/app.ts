@@ -46,19 +46,31 @@ io.use((socket: Socket, next: NextFunction) => {
   );
 });
 
-let users: User[] = [];
+let users = new Map<number, string>();
 
 const addUser = (userId: number, socketId: string) => {
-  !users.some((user) => user.userId === userId) &&
-    users.push({ userId, socketId });
+  // !users.some((user) => user.userId === userId) &&
+  //   users.push({ userId, socketId });
+
+  if (!users.has(userId)) {
+    // users.set(userId, socketId);
+    users.set(userId, socketId);
+  }
 };
 
 const removeUser = (socketId: string) => {
-  users = users.filter((user) => user.socketId !== socketId);
+  const userEntries = [...users.entries()];
+
+  const usersEntriesFilterd = userEntries.filter(
+    ([_, value]) => value !== socketId
+  );
+
+  users = new Map(usersEntriesFilterd);
 };
 
 const getUser = (userId: number) => {
-  return users.find((user) => user.userId === userId);
+  // return users.find((user) => user.userId === userId);
+  return users.get(userId);
 };
 
 io.on("connection", (socket: any) => {
@@ -69,7 +81,7 @@ io.on("connection", (socket: any) => {
     console.log("userId", userId);
     console.log("socketId", socket.id);
     addUser(userId, socket.id);
-    io.emit("getUsers", users);
+    io.emit("getUsers", Array.from(users.keys()));
   });
 
   //send message
@@ -77,18 +89,18 @@ io.on("connection", (socket: any) => {
     "sendMessage",
     ({ sender_id, receiverId, message, conversationId }: Message) => {
       console.log(message);
-      const user: any = getUser(receiverId);
-      const anotherUser: any = getUser(sender_id);
+      const userSocketId = getUser(receiverId);
+      const anotherUserSocketId = getUser(sender_id);
 
-      if (!user || !anotherUser) return;
+      if (!userSocketId || !anotherUserSocketId) return;
 
-      io.to(anotherUser.socketId).emit("getMessage", {
+      io.to(anotherUserSocketId).emit("getMessage", {
         conversation_id: conversationId,
         sender_id: sender_id,
         receiverId,
         message,
       });
-      io.to(user.socketId).emit("getMessage", {
+      io.to(userSocketId).emit("getMessage", {
         conversation_id: conversationId,
         sender_id: sender_id,
         receiverId,
@@ -99,38 +111,36 @@ io.on("connection", (socket: any) => {
 
   //send friend request
   socket.on("sendFriendRequest", ({ request, receiverId }: FriendRequest) => {
-    const user: any = getUser(receiverId);
+    const userSocketId = getUser(receiverId);
 
-    if (!user) return;
+    if (!userSocketId) return;
 
-    io.to(user.socketId).emit("getFriendRequest", request);
+    io.to(userSocketId).emit("getFriendRequest", request);
   });
 
   //send information that message was seen
   socket.on("emitSeen", (data: Seen) => {
-    const user: any = getUser(data.receiver_id);
+    const userSocketId = getUser(data.receiver_id);
 
-    if (!user) return;
+    if (!userSocketId) return;
 
-    io.to(user.socketId).emit("getSeen", data);
+    io.to(userSocketId).emit("getSeen", data);
   });
 
   //send notification
   socket.on("sendNotification", (notification: Notification) => {
-    const user: any = getUser(notification.receiver_id);
+    const userSocketId = getUser(notification.receiver_id);
 
-    if (!user) return;
+    if (!userSocketId) return;
 
-    // if (user.id !== notification.id) return;
-
-    io.to(user.socketId).emit("getNotification", notification);
+    io.to(userSocketId).emit("getNotification", notification);
   });
 
   //when users disconnects
   socket.on("disconnect", () => {
     console.log("user disconnected");
     removeUser(socket.id);
-    io.emit("getUsers", users);
+    io.emit("getUsers", Array.from(users.keys()));
   });
 });
 
