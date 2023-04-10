@@ -5,6 +5,8 @@ import {
   deletePost,
   editPost,
   getPost,
+  getPostCommentsCount,
+  getPostLikesCount,
   getPosts,
   getSharedPost,
   getUserPosts,
@@ -19,6 +21,10 @@ import { upload } from "../utils/upload";
 const router = express.Router();
 
 router.get("/getPosts", protect, getPosts);
+
+router.get("/getPostCommentsCount/:id", protect, getPostCommentsCount);
+
+router.get("/getPostLikesCount/:id", protect, getPostLikesCount);
 
 router.post("/createPost", protect, createPost);
 
