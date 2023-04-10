@@ -5,7 +5,6 @@ import {
   editPostComment,
   getCommentLikesCount,
   getPostComments,
-  getPostCommentsCount,
   isCommentLiked,
   likePostComment,
 } from "../controllers/postComments";
@@ -22,8 +21,6 @@ router.put("/editPostComment/:id", protect, editPostComment);
 router.get("/likePostComment/:id", protect, likePostComment);
 
 router.get("/getPostComments/:id", protect, getPostComments);
-
-router.get("/getPostCommentsCount/:id", protect, getPostCommentsCount);
 
 router.get("/getCommentLikesCount/:id", protect, getCommentLikesCount);
 

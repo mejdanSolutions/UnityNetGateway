@@ -4,6 +4,32 @@ import query from "../db";
 import { minioClient } from "../app";
 import shortUUID from "short-uuid";
 
+const getPostCommentsCount = asyncHandler(
+  async (req: Request, res: Response) => {
+    const postId = req.params.id;
+
+    // let q =
+    //   "SELECT (SELECT COUNT(*) FROM comments c WHERE `post_id`= ?) AS comments, (SELECT COUNT(*) FROM post_likes pl WHERE `post_id`= ?) AS likes FROM dual";
+
+    let q =
+      "SELECT COUNT(*) AS comment_count FROM comments WHERE `post_id` = ?";
+
+    let data = await query(q, [postId]);
+
+    res.status(200).json(data[0]);
+  }
+);
+
+const getPostLikesCount = asyncHandler(async (req: Request, res: Response) => {
+  const postId = req.params.id;
+
+  let q = "SELECT COUNT(*) as likes_count FROM post_likes WHERE `post_id` = ?";
+
+  let data = await query(q, [postId]);
+
+  res.status(200).json(data[0]);
+});
+
 const isPostLiked = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
   const userId = req.user?.id;
@@ -225,7 +251,6 @@ const likePost = asyncHandler(async (req: Request, res: Response) => {
 const getPost = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
 
-
   let q =
     "SELECT u.id AS user_id, u.first_name,u.last_name,u.image,p.id,p.text_content,p.type,p.photo,p.created_at FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE p.id = ?";
 
@@ -351,4 +376,6 @@ export {
   isPostShared,
   addPhoto,
   getSharedPost,
+  getPostCommentsCount,
+  getPostLikesCount,
 };
