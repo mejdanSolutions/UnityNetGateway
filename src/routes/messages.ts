@@ -1,11 +1,14 @@
 import express from "express";
 import {
   getMessages,
+  getUserConversations,
   markMessageAsSeen,
   sendMessage,
 } from "../controllers/messages";
-
+import { protect } from "../utils/protect";
 const router = express.Router();
+
+router.get("/getUserConversations", protect, getUserConversations);
 
 router.put("/markMessageAsSeen/:id", markMessageAsSeen);
 

@@ -2,32 +2,6 @@ import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 import query from "../db";
 
-const getPostCommentsCount = asyncHandler(
-  async (req: Request, res: Response) => {
-    const postId = req.params.id;
-
-    // let q =
-    //   "SELECT (SELECT COUNT(*) FROM comments c WHERE `post_id`= ?) AS comments, (SELECT COUNT(*) FROM post_likes pl WHERE `post_id`= ?) AS likes FROM dual";
-
-    let q =
-      "SELECT COUNT(*) AS comment_count FROM comments WHERE `post_id` = ?";
-
-    let data = await query(q, [postId]);
-
-    res.status(200).json(data[0]);
-  }
-);
-
-const getPostLikesCount = asyncHandler(async (req: Request, res: Response) => {
-  const postId = req.params.id;
-
-  let q = "SELECT COUNT(*) as likes_count FROM post_likes WHERE `post_id` = ?";
-
-  let data = await query(q, [postId]);
-
-  res.status(200).json(data[0]);
-});
-
 const isCommentLiked = asyncHandler(async (req: Request, res: Response) => {
   const commentId = req.params.id;
   const userId = 1;
@@ -157,8 +131,6 @@ export {
   editPostComment,
   likePostComment,
   getPostComments,
-  getPostCommentsCount,
   getCommentLikesCount,
   isCommentLiked,
-  getPostLikesCount,
 };

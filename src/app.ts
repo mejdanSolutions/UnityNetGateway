@@ -4,6 +4,7 @@ import express, { Application, NextFunction } from "express";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import postRoutes from "./routes/post";
+import photoRoutes from "./routes/photos";
 import messageRoutes from "./routes/messages";
 import notificationRoutes from "./routes/notification";
 import postCommentRoutes from "./routes/postComments";
@@ -171,6 +172,7 @@ app.use("/api/followers", friendRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notification", notificationRoutes);
+app.use("/api/photos", photoRoutes);
 
 minioClient.bucketExists("social-media", function (error) {
   if (error) {
