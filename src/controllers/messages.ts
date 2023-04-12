@@ -69,8 +69,13 @@ const getUserConversations = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
-    let q =
-      "SELECT u.id,f.id AS conversation_id, u.first_name, u.last_name, u.image, m.message AS last_message, m.created_at AS last_message_date, m.sender_id FROM friends f INNER JOIN users u ON (f.personA = u.id OR f.personB = u.id) AND u.id != ? LEFT JOIN (SELECT conversation_id, MAX(created_at) AS max_created_at FROM messages GROUP BY conversation_id) last_msg ON f.id = last_msg.conversation_id LEFT JOIN messages m ON last_msg.conversation_id = m.conversation_id AND last_msg.max_created_at = m.created_at WHERE f.personA = ? OR f.personB = ? ORDER BY last_message_date DESC";
+    let q = `SELECT u.id,f.id AS conversation_id, u.first_name, u.last_name, u.image, m.message AS last_message, m.created_at AS last_message_date, m.sender_id
+       FROM friends f INNER JOIN users u ON (f.personA = u.id OR f.personB = u.id) AND u.id != ? 
+       LEFT JOIN (SELECT conversation_id, MAX(created_at) AS max_created_at 
+       FROM messages 
+       GROUP BY conversation_id) last_msg ON f.id = last_msg.conversation_id
+        LEFT JOIN messages m ON last_msg.conversation_id = m.conversation_id AND last_msg.max_created_at = m.created_at
+         WHERE f.personA = ? OR f.personB = ? ORDER BY last_message_date DESC`;
 
     let data = await query(q, [userId, userId, userId]);
 

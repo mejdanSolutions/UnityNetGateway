@@ -9,6 +9,7 @@ import {
   getPostLikesCount,
   getPosts,
   getSharedPost,
+  getSharesCount,
   getUserPosts,
   isPostLiked,
   isPostShared,
@@ -20,19 +21,21 @@ import { upload } from "../utils/upload";
 
 const router = express.Router();
 
-router.get("/getPosts", protect, getPosts);
+router.post("/createPost", protect, createPost);
+
+router.post("/addPhoto", protect, upload.single("photo"), addPhoto);
+
+router.get("/getPosts/:page", protect, getPosts);
+
+router.get("/getSharesCount/:id", getSharesCount);
 
 router.get("/getPostCommentsCount/:id", protect, getPostCommentsCount);
 
 router.get("/getPostLikesCount/:id", protect, getPostLikesCount);
 
-router.post("/createPost", protect, createPost);
-
-router.post("/addPhoto", protect, upload.single("photo"), addPhoto);
-
 router.get("/getPost/:id", getPost);
 
-router.get("/getUserPosts/:id", protect, getUserPosts);
+router.get("/getUserPosts/:id/:page", protect, getUserPosts);
 
 router.get("/isPostLiked/:id", protect, isPostLiked);
 

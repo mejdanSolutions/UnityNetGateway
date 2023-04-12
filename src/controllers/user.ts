@@ -70,8 +70,10 @@ const getLoggedUserInfo = asyncHandler(async (req: Request, res: Response) => {
 const getUserFriends = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.params.id;
 
-  let q =
-    "SELECT u.id,u.first_name,u.last_name, u.image FROM friends f JOIN users u ON u.id=f.personA WHERE f.personB=? UNION SELECT u.id, u.first_name, u.last_name, u.image FROM friends f JOIN users u ON u.id=f.personB WHERE f.personA = ?";
+  let q = `SELECT u.id,u.first_name,u.last_name, u.image FROM friends f 
+    JOIN users u ON u.id=f.personA WHERE f.personB=? 
+    UNION SELECT u.id, u.first_name, u.last_name, u.image FROM friends f JOIN users u ON u.id=f.personB
+     WHERE f.personA = ?`;
 
   let data = await query(q, [userId, userId]);
 
@@ -126,19 +128,6 @@ const getUsersByLikes = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(data);
 });
 
-const getUsersByPhotoLikes = asyncHandler(
-  async (req: Request, res: Response) => {
-    const photoId = req.params.id;
-
-    let q =
-      "SELECT u.id,u.first_name,u.last_name,u.image FROM users u JOIN photo_likes p ON p.user_id=u.id WHERE p.photo_id=?";
-
-    let data = await query(q, [photoId]);
-
-    res.json(data);
-  }
-);
-
 const searchUsers = asyncHandler(async (req: Request, res: Response) => {
   const { q } = req.query;
 
@@ -173,6 +162,5 @@ export {
   getUsersByLikes,
   getUserFriends,
   getLoggedUserInfo,
-  getUsersByPhotoLikes,
   searchUsers,
 };
