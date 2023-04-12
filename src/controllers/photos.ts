@@ -138,7 +138,7 @@ const getCoverPhotos = asyncHandler(async (req: Request, res: Response) => {
   const type = "cover";
 
   let q =
-    "SELECT `id`,`user_id`,`text_content`,`photo`,`type` FROM posts WHERE `type`=? AND `user_id`= ?";
+    "SELECT p.id, p.user_id ,p.text_content,p.photo,p.created_at,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE `type`=? AND `user_id`= ? ORDER BY p.created_at DESC";
 
   let data = await query(q, [type, userId]);
 
@@ -152,6 +152,19 @@ const getCoverPhotos = asyncHandler(async (req: Request, res: Response) => {
         function (err: Error | null, presignedUrl: string) {
           if (!err) {
             post.photo = presignedUrl;
+          }
+        }
+      );
+    }
+    if (post.image) {
+      minioClient.presignedUrl(
+        "GET",
+        "social-media",
+        post.image,
+        24 * 60 * 60,
+        function (err: Error | null, presignedUrl: string) {
+          if (!err) {
+            post.image = presignedUrl;
           }
         }
       );

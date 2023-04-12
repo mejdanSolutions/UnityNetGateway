@@ -24,8 +24,8 @@ const createNotification = asyncHandler(async (req: Request, res: Response) => {
 const getNotifications = asyncHandler(async (req: Request, res: Response) => {
   const receiverId = req.user?.id;
 
-  let q =
-    "SELECT u.id, u.first_name, u.last_name, u.image, n.type, n.created_at,n.id as notification_id,n.post_id FROM users u INNER JOIN notifications n ON u.id=n.sender_id WHERE n.receiver_id=?";
+  let q = `SELECT u.id, u.first_name, u.last_name, u.image, n.type, n.created_at,n.id as notification_id,n.post_id FROM users u 
+    INNER JOIN notifications n ON u.id=n.sender_id WHERE n.receiver_id=?`;
 
   let data = await query(q, [receiverId]);
 

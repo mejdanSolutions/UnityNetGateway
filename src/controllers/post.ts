@@ -4,6 +4,17 @@ import query from "../db";
 import { minioClient } from "../app";
 import shortUUID from "short-uuid";
 
+const getSharesCount = asyncHandler(async (req: Request, res: Response) => {
+  const postId = req.params.id;
+
+  let q =
+    "SELECT COUNT(DISTINCT parent_id) AS shares_count FROM shared_posts WHERE `child_id` = ?";
+
+  let data = await query(q, [postId]);
+
+  res.status(200).json(data[0]);
+});
+
 const getPostCommentsCount = asyncHandler(
   async (req: Request, res: Response) => {
     const postId = req.params.id;
@@ -45,14 +56,19 @@ const isPostLiked = asyncHandler(async (req: Request, res: Response) => {
 
 const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.params.id;
+  const page = parseInt(req.params.page);
+  const offset = (page - 1) * 10;
 
-  // "SELECT u.id, u.first_name, u.last_name FROM friend_requests f JOIN users u ON u.id=f.sender WHERE f.receiver=?";
+  let q = `
+  SELECT p.id, p.user_id, p.text_content, p.description, p.type, p.photo, p.created_at, p.updated_at, u.first_name, u.last_name, u.image 
+  FROM posts p 
+  INNER JOIN users u ON p.user_id = u.id 
+  WHERE u.id = ?
+  ORDER BY p.created_at DESC 
+  LIMIT 10 OFFSET ${offset}
+  `;
 
-  // let q =
-  //   "SELECT u.id, u.first_name, u.last_name, p.text_content FROM posts p JOIN users u ON u.id=p.user_id WHERE u.id =?";
-
-  let q =
-    "SELECT p.id,p.user_id,p.text_content,p.description,p.type,p.photo,p.created_at,p.updated_at,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE u.id =?";
+  console.log(offset);
 
   let data = await query(q, [userId]);
 
@@ -105,53 +121,21 @@ const createPost = asyncHandler(async (req: Request, res: Response) => {
 
 const getPosts = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-
-  // let q =
-  //   "SELECT `id`,`text_content`,`user_id`,`created_at` FROM posts WHERE `user_id` = ? ORDER BY `created_at`";
-
-  //check if the user has friends
-  let q = "SELECT `id` FROM friends WHERE `personA`= ? OR `personB`= ?";
-
-  let data = await query(q, [userId, userId]);
-
-  //user does not have any friends
-  if (data.length === 0) {
-    q =
-      "SELECT p.id,p.text_content,p.description,p.type,p.photo,p.created_at,p.updated_at,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id";
-
-    //find if user has posts
-    let result = await query(q, [userId]);
-
-    result.forEach((post: any) => {
-      if (post.photo) {
-        minioClient.presignedUrl(
-          "GET",
-          "social-media",
-          post.photo,
-          24 * 60 * 60,
-          function (err: Error | null, presignedUrl: string) {
-            if (!err) {
-              post.photo = presignedUrl;
-            }
-          }
-        );
-      }
-    });
-    //if not send send empty array
-
-    //else his posts
-    res.json(result);
-    return;
-  }
-
-  // q =
-  //   "SELECT posts.id, posts.user_id, posts.text_content, posts.created_at FROM posts INNER JOIN friends ON friends.personA=? OR friends.personB = ? WHERE friends.personA=posts.user_id OR friends.personB=posts.user_id";
+  const page = parseInt(req.params.page);
+  const offset = (page - 1) * 10;
 
   //send posts that user and his friends own
-  q =
-    "SELECT distinct p.id, p.user_id,p.text_content, p.photo ,p.type,p.created_at,p.updated_at,u.first_name,u.last_name, u.image FROM posts p INNER JOIN friends f ON p.user_id IN (f.personA, f.personB) AND ? IN (f.personA, f.personB) INNER JOIN users u ON u.id=p.user_id";
+  let q = `SELECT DISTINCT p.id, p.user_id, p.text_content, p.photo, p.type, p.created_at, p.updated_at, u.first_name, u.last_name, u.image
+  FROM posts p
+  INNER JOIN users u ON u.id = p.user_id
+  LEFT JOIN friends f ON (f.personA = u.id OR f.personB = u.id)
+  WHERE u.id = ?
+    OR f.personA = ?
+    OR f.personB = ?
+  ORDER BY p.created_at DESC
+  LIMIT 10 OFFSET ${offset}`;
 
-  data = await query(q, [userId]);
+  let data = await query(q, [userId, userId, userId]);
 
   data.forEach((post: any) => {
     if (post.photo) {
@@ -251,8 +235,8 @@ const likePost = asyncHandler(async (req: Request, res: Response) => {
 const getPost = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
 
-  let q =
-    "SELECT u.id AS user_id, u.first_name,u.last_name,u.image,p.id,p.text_content,p.type,p.photo,p.created_at FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE p.id = ?";
+  let q = `SELECT u.id AS user_id, u.first_name,u.last_name,u.image,p.id,p.text_content,p.type,p.photo,p.created_at FROM posts p
+     INNER JOIN users u ON p.user_id=u.id WHERE p.id = ?`;
 
   let data = await query(q, [postId]);
 
@@ -355,10 +339,22 @@ const getSharedPost = asyncHandler(async (req: Request, res: Response) => {
 
   let data = await query(q, [parentId]);
 
-  q =
-    "SELECT p.id,p.user_id,p.text_content, p.photo, p.type,u.first_name, u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE p.id=?";
+  q = `SELECT p.id,p.user_id,p.text_content, p.photo, p.type,u.first_name, u.last_name,u.image, p.created_at FROM posts p
+     INNER JOIN users u ON p.user_id=u.id WHERE p.id=?`;
 
   data = await query(q, [data[0].child_id]);
+
+  minioClient.presignedUrl(
+    "GET",
+    "social-media",
+    data[0].image,
+    24 * 60 * 60,
+    function (err: Error | null, presignedUrl: string) {
+      if (!err) {
+        data[0].image = presignedUrl;
+      }
+    }
+  );
 
   res.json(data);
 });
@@ -378,4 +374,5 @@ export {
   getSharedPost,
   getPostCommentsCount,
   getPostLikesCount,
+  getSharesCount,
 };

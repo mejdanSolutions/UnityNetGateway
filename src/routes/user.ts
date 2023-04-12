@@ -4,7 +4,6 @@ import {
   getUserFriends,
   getUserInfo,
   getUsersByLikes,
-  getUsersByPhotoLikes,
   searchUsers,
 } from "../controllers/user";
 import { protect } from "../utils/protect";
@@ -21,7 +20,5 @@ router.get("/getUserInfo/:id", protect, getUserInfo);
 router.get("/getUsersByLikes/:id", protect, getUsersByLikes);
 
 router.get("/getUserFriends/:id", getUserFriends);
-
-router.get("/getUsersByPhotoLikes/:id", getUsersByPhotoLikes);
 
 export default router;
