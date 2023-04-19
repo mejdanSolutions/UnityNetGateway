@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get("/getFriendRequests", protect, getFriendRequests);
 
-router.get("/checkFriendsStatus", protect, checkFriendsStatus);
+router.get("/checkFriendsStatus/:id", protect, checkFriendsStatus);
 
 router.get("/getFriendRequestsCount", protect, getFriendRequestsCount);
 
