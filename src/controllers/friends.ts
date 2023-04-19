@@ -64,10 +64,13 @@ const checkFriendRequestStatus = asyncHandler(
     const userId = req.user?.id;
     const userTwo = req.params.id;
     //check if friend request already exists
+
     let q =
-      "SELECT `id`,`receiver`,`sender` FROM friend_requests WHERE `sender` = ? OR `receiver`= ? AND `sender` = ? OR `receiver`=?";
+      "SELECT `id`,`receiver`,`sender` FROM friend_requests WHERE `receiver` = ? OR `sender`= ? AND `receiver` = ? OR `sender`=?";
     let values = [userId, userId, userTwo, userTwo];
     let data = await query(q, values);
+
+    console.log("friendsReq", data);
 
     if (data.length) {
       res.json({
@@ -84,11 +87,15 @@ const checkFriendRequestStatus = asyncHandler(
 );
 
 const checkFriendsStatus = asyncHandler(async (req: Request, res: Response) => {
-  const userId = 1;
+  const loggedUserId = req.user?.id;
+  const userId = req.params.id;
 
-  let q = "SELECT `id` FROM friends WHERE `personA` = ? OR `personB`= ?";
-  const values = [userId, userId];
+  let q =
+    "SELECT `id` FROM friends WHERE `personA` = ? OR `personB`= ? AND `personA` = ? OR `personB` = ?";
+  const values = [userId, loggedUserId];
   let data = await query(q, values);
+
+  console.log(data);
 
   if (data.length) {
     res.json(true);
