@@ -66,7 +66,7 @@ const checkFriendRequestStatus = asyncHandler(
     //check if friend request already exists
 
     let q =
-      "SELECT `id`,`receiver`,`sender` FROM friend_requests WHERE `receiver` = ? OR `sender`= ? AND `receiver` = ? OR `sender`=?";
+      "SELECT `id`,`receiver`,`sender` FROM friend_requests WHERE (`receiver` = ? OR `sender`= ?) AND (`receiver` = ? OR `sender`=?)";
     let values = [userId, userId, userTwo, userTwo];
     let data = await query(q, values);
 
