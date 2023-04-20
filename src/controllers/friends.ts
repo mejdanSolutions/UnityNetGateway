@@ -70,8 +70,6 @@ const checkFriendRequestStatus = asyncHandler(
     let values = [userId, userId, userTwo, userTwo];
     let data = await query(q, values);
 
-    console.log("friendsReq", data);
-
     if (data.length) {
       res.json({
         status: true,
@@ -88,14 +86,12 @@ const checkFriendRequestStatus = asyncHandler(
 
 const checkFriendsStatus = asyncHandler(async (req: Request, res: Response) => {
   const loggedUserId = req.user?.id;
-  const userId = req.params.id;
+  const secondUser = req.params.id;
 
   let q =
-    "SELECT `id` FROM friends WHERE `personA` = ? OR `personB`= ? AND `personA` = ? OR `personB` = ?";
-  const values = [userId, loggedUserId];
+    "SELECT `id` FROM friends WHERE (`personA` = ? OR `personB`= ?) AND (`personA` = ? OR `personB` = ?)";
+  const values = [loggedUserId, loggedUserId, secondUser, secondUser];
   let data = await query(q, values);
-
-  console.log(data);
 
   if (data.length) {
     res.json(true);
