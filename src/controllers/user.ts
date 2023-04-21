@@ -131,7 +131,7 @@ const getUsersByLikes = asyncHandler(async (req: Request, res: Response) => {
 const getUsersByShares = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
 
-  let q = `SELECT u.id, u.first_name, u.last_name, u.image
+  let q = `SELECT DISTINCT u.id, u.first_name, u.last_name, u.image
   FROM users u
   JOIN (
     SELECT p.user_id, sp.parent_id
