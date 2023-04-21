@@ -128,6 +128,39 @@ const getUsersByLikes = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(data);
 });
 
+const getUsersByShares = asyncHandler(async (req: Request, res: Response) => {
+  const postId = req.params.id;
+
+  let q = `SELECT u.id, u.first_name, u.last_name, u.image
+  FROM users u
+  JOIN (
+    SELECT p.user_id, sp.parent_id
+    FROM shared_posts sp
+    JOIN posts p ON p.id = sp.parent_id
+    WHERE sp.child_id = ?
+  ) AS post_shares ON post_shares.user_id = u.id`;
+
+  let data = await query(q, [postId]);
+
+  data.forEach((user: any) => {
+    if (user.image) {
+      minioClient.presignedUrl(
+        "GET",
+        "social-media",
+        user.image,
+        24 * 60 * 60,
+        function (err: Error | null, presignedUrl: string) {
+          if (!err) {
+            user.image = presignedUrl;
+          }
+        }
+      );
+    }
+  });
+
+  res.status(200).json(data);
+});
+
 const searchUsers = asyncHandler(async (req: Request, res: Response) => {
   const { q } = req.query;
 
@@ -163,4 +196,5 @@ export {
   getUserFriends,
   getLoggedUserInfo,
   searchUsers,
+  getUsersByShares,
 };
