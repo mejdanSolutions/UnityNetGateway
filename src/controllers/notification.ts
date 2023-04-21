@@ -33,7 +33,16 @@ const getNotifications = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const getNotificationsCount = asyncHandler(
-  async (req: Request, res: Response) => {}
+  async (req: Request, res: Response) => {
+    const receiverId = req.user?.id;
+
+    let q =
+      "SELECT COUNT(*) AS notifications_count FROM notifications WHERE receiver_id = ? AND `read` = false;";
+
+    let data = await query(q, [receiverId]);
+
+    res.status(200).json(data[0]);
+  }
 );
 
 const markNotificationAsRead = asyncHandler(
