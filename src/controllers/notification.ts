@@ -36,4 +36,22 @@ const getNotificationsCount = asyncHandler(
   async (req: Request, res: Response) => {}
 );
 
-export { createNotification, getNotifications };
+const markNotificationAsRead = asyncHandler(
+  async (req: Request, res: Response) => {
+    const receiverId = req.user?.id;
+
+    let q =
+      "UPDATE notifications SET `read` = true WHERE receiver_id = ? AND `read` = false";
+
+    let data = await query(q, [receiverId]);
+
+    res.status(200).json("Notifications marked as read!");
+  }
+);
+
+export {
+  createNotification,
+  getNotifications,
+  markNotificationAsRead,
+  getNotificationsCount,
+};
