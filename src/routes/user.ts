@@ -4,6 +4,7 @@ import {
   getUserFriends,
   getUserInfo,
   getUsersByLikes,
+  getUsersByShares,
   searchUsers,
 } from "../controllers/user";
 import { protect } from "../utils/protect";
@@ -18,6 +19,8 @@ router.get("/searchUsers", searchUsers);
 router.get("/getUserInfo/:id", protect, getUserInfo);
 
 router.get("/getUsersByLikes/:id", protect, getUsersByLikes);
+
+router.get("/getUsersByShares/:id", getUsersByShares);
 
 router.get("/getUserFriends/:id", getUserFriends);
 
