@@ -12,7 +12,7 @@ export interface Message {
 
 export interface FriendRequest {
   receiverId: number;
-  request: number;
+  senderId: number;
 }
 
 export interface Notification {
