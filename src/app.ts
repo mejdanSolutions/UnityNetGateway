@@ -112,18 +112,21 @@ io.on("connection", (socket: any) => {
   );
 
   //send friend request
-  socket.on("sendFriendRequest", async ({ receiverId }: FriendRequest) => {
-    const userSocketId = getUser(receiverId);
+  socket.on(
+    "sendFriendRequest",
+    async ({ senderId, receiverId }: FriendRequest) => {
+      const userSocketId = getUser(receiverId);
 
-    if (!userSocketId) return;
+      if (!userSocketId) return;
 
-    let q =
-      "SELECT `id`,`first_name`,`last_name`,`image` FROM users WHERE `id` = ?";
+      let q =
+        "SELECT `id`,`first_name`,`last_name`,`image` FROM users WHERE `id` = ?";
 
-    let data = await query(q, [receiverId]);
+      let data = await query(q, [senderId]);
 
-    io.to(userSocketId).emit("getFriendRequest", data[0]);
-  });
+      io.to(userSocketId).emit("getFriendRequest", data[0]);
+    }
+  );
 
   //send information that message was seen
   socket.on("emitSeen", (data: Seen) => {
@@ -139,6 +142,8 @@ io.on("connection", (socket: any) => {
     const userSocketId = getUser(notification.receiver_id);
 
     if (!userSocketId) return;
+
+    console.log(notification);
 
     io.to(userSocketId).emit("getNotification", notification);
   });
