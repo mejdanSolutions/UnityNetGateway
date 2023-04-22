@@ -21,6 +21,7 @@ import { Message } from "./types/custom";
 import { Notification } from "./types/custom";
 import { Socket } from "socket.io";
 import jwt from "jsonwebtoken";
+import query from "./db";
 
 const app: Application = express();
 
@@ -111,12 +112,17 @@ io.on("connection", (socket: any) => {
   );
 
   //send friend request
-  socket.on("sendFriendRequest", ({ request, receiverId }: FriendRequest) => {
+  socket.on("sendFriendRequest", async ({ receiverId }: FriendRequest) => {
     const userSocketId = getUser(receiverId);
 
     if (!userSocketId) return;
 
-    io.to(userSocketId).emit("getFriendRequest", request);
+    let q =
+      "SELECT `id`,`first_name`,`last_name`,`image` FROM users WHERE `id` = ?";
+
+    let data = await query(q, [receiverId]);
+
+    io.to(userSocketId).emit("getFriendRequest", data[0]);
   });
 
   //send information that message was seen
