@@ -128,6 +128,17 @@ io.on("connection", (socket: any) => {
     }
   );
 
+  //send information when user gets unfriended
+  socket.on("removeFromFriends", (receiverId: number) => {
+    const userSocketId = getUser(receiverId);
+
+    if (!userSocketId) return;
+
+    console.log("removeFromFriendsReceiverId", userSocketId);
+
+    io.to(userSocketId).emit("removedFromFriends", true);
+  });
+
   //send information that message was seen
   socket.on("emitSeen", (data: Seen) => {
     const userSocketId = getUser(data.receiver_id);
