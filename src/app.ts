@@ -92,16 +92,9 @@ io.on("connection", (socket: any) => {
     ({ sender_id, receiverId, message, conversationId }: Message) => {
       console.log(message);
       const userSocketId = getUser(receiverId);
-      const anotherUserSocketId = getUser(sender_id);
 
-      if (!userSocketId || !anotherUserSocketId) return;
+      if (!userSocketId) return;
 
-      io.to(anotherUserSocketId).emit("getMessage", {
-        conversation_id: conversationId,
-        sender_id: sender_id,
-        receiverId,
-        message,
-      });
       io.to(userSocketId).emit("getMessage", {
         conversation_id: conversationId,
         sender_id: sender_id,
