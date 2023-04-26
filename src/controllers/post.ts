@@ -60,7 +60,7 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
   const offset = (page - 1) * 10;
 
   let q = `
-  SELECT p.id, p.user_id, p.text_content, p.description, p.type, p.photo, p.created_at, p.updated_at, u.first_name, u.last_name, u.image 
+  SELECT p.id, p.user_id, p.text_content, p.description, p.type, p.photo, p.created_at, p.updated_at, p.edited, u.first_name, u.last_name, u.image 
   FROM posts p 
   INNER JOIN users u ON p.user_id = u.id 
   WHERE u.id = ?
@@ -125,7 +125,7 @@ const getPosts = asyncHandler(async (req: Request, res: Response) => {
   const offset = (page - 1) * 10;
 
   //send posts that user and his friends own
-  let q = `SELECT DISTINCT p.id, p.user_id, p.text_content, p.photo, p.type, p.created_at, p.updated_at, u.first_name, u.last_name, u.image
+  let q = `SELECT DISTINCT p.id, p.user_id, p.text_content, p.photo, p.type, p.created_at, p.updated_at,p.edited, u.first_name, u.last_name, u.image
   FROM posts p
   INNER JOIN users u ON u.id = p.user_id
   LEFT JOIN friends f ON (f.personA = u.id OR f.personB = u.id)
@@ -235,7 +235,7 @@ const likePost = asyncHandler(async (req: Request, res: Response) => {
 const getPost = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
 
-  let q = `SELECT u.id AS user_id, u.first_name,u.last_name,u.image,p.id,p.text_content,p.type,p.photo,p.created_at FROM posts p
+  let q = `SELECT u.id AS user_id, u.first_name,u.last_name,u.image,p.id,p.text_content,p.type,p.photo,p.created_at, p.edited FROM posts p
      INNER JOIN users u ON p.user_id=u.id WHERE p.id = ?`;
 
   let data = await query(q, [postId]);
