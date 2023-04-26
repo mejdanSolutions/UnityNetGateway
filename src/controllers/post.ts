@@ -184,10 +184,10 @@ const deletePost = asyncHandler(async (req: Request, res: Response) => {
 
 const editPost = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
-  const userId = 1;
+  const userId = req.user?.id;
   const { textContent } = req.body;
   let q =
-    "UPDATE posts SET `text_content` = ? WHERE `id` = ? AND `user_id` = ?";
+    "UPDATE posts SET `text_content` = ?, `edited`=true WHERE `id` = ? AND `user_id` = ?";
   const values = [textContent, postId, userId];
   let data = await query(q, values);
 
