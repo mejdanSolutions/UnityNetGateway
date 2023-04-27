@@ -105,9 +105,8 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const createPost = asyncHandler(async (req: Request, res: Response) => {
-  const { textContent } = req.body;
+  const { textContent, profileId } = req.body;
   const userId = req.user?.id;
-  const profileId = req.params.profileId;
 
   let q;
   let data;
