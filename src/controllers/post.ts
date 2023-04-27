@@ -107,9 +107,24 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
 const createPost = asyncHandler(async (req: Request, res: Response) => {
   const { textContent } = req.body;
   const userId = req.user?.id;
-  let q = "INSERT INTO posts (`text_content`,`user_id`) VALUES (?, ?)";
-  const values = [textContent, userId];
-  let data = await query(q, values);
+  const profileId = req.params.profileId;
+
+  let q;
+  let data;
+  let values;
+
+  if (!profileId) {
+    q = "INSERT INTO posts (`text_content`,`user_id`) VALUES (?, ?)";
+    values = [textContent, userId];
+    data = await query(q, values);
+  }
+
+  if (profileId) {
+    q =
+      "INSERT INTO posts (`text_content`,`user_id`,`profile_id`) VALUES (?, ?, ?)";
+    values = [textContent, userId, profileId];
+    data = await query(q, values);
+  }
 
   if (!data.affectedRows) {
     res.status(500);
