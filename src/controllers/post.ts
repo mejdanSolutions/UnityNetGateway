@@ -60,7 +60,7 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
   const offset = (page - 1) * 10;
 
   let q = `
-  SELECT p.id, p.user_id, p.text_content, p.description, p.type, p.photo, p.created_at, p.updated_at, p.edited, u.first_name, u.last_name, u.image 
+  SELECT p.id, p.user_id, p.text_content, p.description, p.type, p.photo, p.created_at, p.updated_at, p.edited,p.profile_id, u.first_name, u.last_name, u.image 
   FROM posts p 
   INNER JOIN users u ON p.user_id = u.id 
   WHERE u.id = ? OR p.profile_id = ?
@@ -71,6 +71,8 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
   console.log(offset);
 
   let data = await query(q, [userId, userId]);
+
+  console.log(data);
 
   data.forEach((post: any) => {
     if (post.photo) {
