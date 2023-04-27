@@ -60,7 +60,7 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
   const offset = (page - 1) * 10;
 
   let q = `
-  SELECT p.id, p.user_id, p.text_content, p.description, p.type, p.photo, p.created_at, p.updated_at, p.edited,p.profile_id, u.first_name, u.last_name, u.image 
+  SELECT p.id, p.user_id, p.text_content, p.type, p.photo, p.created_at, p.updated_at, p.edited,p.profile_id, u.first_name, u.last_name, u.image 
   FROM posts p 
   INNER JOIN users u ON p.user_id = u.id 
   WHERE (p.profile_id = ? AND p.user_id != p.profile_id) OR (p.user_id = ? AND p.profile_id IS NULL) OR (p.profile_id = ? AND p.profile_id=p.user_id)
@@ -303,7 +303,7 @@ const isPostShared = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const addPhoto = asyncHandler(async (req: Request, res: Response) => {
-  const { description } = req.body;
+  const { description, profileId } = req.body;
   const userId = req.user?.id;
 
   if (!req.file) {
@@ -330,10 +330,23 @@ const addPhoto = asyncHandler(async (req: Request, res: Response) => {
     }
   );
 
-  let q =
-    "INSERT INTO posts (`user_id`, `text_content`, `photo`) VALUES (?, ?, ?)";
-  const values = [userId, description, uuid];
-  let data = await query(q, values);
+  let q;
+  let values;
+  let data;
+
+  if (!profileId) {
+    q =
+      "INSERT INTO posts (`user_id`, `text_content`, `photo`) VALUES (?, ?, ?)";
+    values = [userId, description, uuid];
+    data = await query(q, values);
+  }
+
+  if (profileId) {
+    q =
+      "INSERT INTO posts (`user_id`, `text_content`, `photo`, `profile_id`) VALUES (?, ?, ?, ?)";
+    values = [userId, description, uuid, parseInt(profileId)];
+    data = await query(q, values);
+  }
 
   if (!data.affectedRows) {
     res.status(500);
