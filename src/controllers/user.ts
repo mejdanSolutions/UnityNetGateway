@@ -42,6 +42,34 @@ const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(result[0]);
 });
 
+const editUserInfo = asyncHandler(async (req: Request, res: Response) => {
+  const { firstName, lastName, city, country } = req.body;
+  const userId = 1;
+
+  if (!firstName) {
+    res.status(404);
+    throw new Error("Please enter your first name");
+  }
+
+  if (!lastName) {
+    res.status(404);
+    throw new Error("Please enter you last name");
+  }
+
+  let q =
+    "UPDATE users SET `first_name` = ?,`last_name` = ?,`city`=?,`country`=? WHERE `id` = ?";
+
+  let data = await query(q, [
+    firstName,
+    lastName,
+    city || null,
+    country || null,
+    userId,
+  ]);
+
+  res.status(200).json("User edited");
+});
+
 const getLoggedUserInfo = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.id;
 
@@ -197,4 +225,5 @@ export {
   getLoggedUserInfo,
   searchUsers,
   getUsersByShares,
+  editUserInfo,
 };
