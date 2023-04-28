@@ -8,7 +8,7 @@ const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.params.id;
 
   let q =
-    "SELECT `id`,`first_name`,`last_name`, `image`,`cover_image` FROM users WHERE `id` = ?";
+    "SELECT `id`,`first_name`,`last_name`, `image`,`cover_image`,`city`,`country`,`last_active` FROM users WHERE `id` = ?";
   let result = await query(q, [userId]);
 
   if (result[0].image) {
@@ -74,7 +74,7 @@ const getLoggedUserInfo = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.id;
 
   let q =
-    "SELECT `id`, `first_name`, `last_name`,`image` FROM users WHERE `id`= ?";
+    "SELECT `id`, `first_name`, `last_name`,`image`,`last_active`,`country`,`city` FROM users WHERE `id`= ?";
 
   let data = await query(q, [userId]);
 
