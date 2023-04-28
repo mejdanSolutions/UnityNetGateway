@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  editUserInfo,
   getLoggedUserInfo,
   getUserFriends,
   getUserInfo,
@@ -15,6 +16,8 @@ const router = express.Router();
 router.get("/getLoggedUserInfo", protect, getLoggedUserInfo);
 
 router.get("/searchUsers", searchUsers);
+
+router.put("/editUserInfo", editUserInfo);
 
 router.get("/getUserInfo/:id", protect, getUserInfo);
 
