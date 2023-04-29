@@ -68,11 +68,7 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
   LIMIT 10 OFFSET ${offset}
   `;
 
-  console.log(offset);
-
   let data = await query(q, [userId, userId, userId]);
-
-  console.log(data);
 
   data.forEach((post: any) => {
     if (post.photo) {
@@ -151,8 +147,6 @@ const getPosts = asyncHandler(async (req: Request, res: Response) => {
   LIMIT 10 OFFSET ${offset}`;
 
   let data = await query(q, [userId, userId, userId]);
-
-  console.log(data);
 
   data.forEach((post: any) => {
     if (post.photo) {
