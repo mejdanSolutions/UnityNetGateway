@@ -182,8 +182,6 @@ const deleteProfilePhoto = asyncHandler(async (req: Request, res: Response) => {
 
   let data = await query(q, [photoId]);
 
-  console.log("current profile pic ", data);
-
   if (data) {
     q = "UPDATE users SET `image`= NULL WHERE `image`= ?";
     let result = await query(q, [data[0].image]);

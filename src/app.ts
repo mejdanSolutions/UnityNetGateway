@@ -80,8 +80,6 @@ io.on("connection", (socket: any) => {
 
   //take userId and socketId from user that connected
   socket.on("addUser", (userId: number) => {
-    console.log("userId", userId);
-    console.log("socketId", socket.id);
     addUser(userId, socket.id);
     io.emit("getUsers", Array.from(users.keys()));
   });
@@ -127,8 +125,6 @@ io.on("connection", (socket: any) => {
 
     if (!userSocketId) return;
 
-    console.log("removeFromFriendsReceiverId", userSocketId);
-
     io.to(userSocketId).emit("removedFromFriends", true);
   });
 
@@ -146,8 +142,6 @@ io.on("connection", (socket: any) => {
     const userSocketId = getUser(notification.receiver_id);
 
     if (!userSocketId) return;
-
-    console.log(notification);
 
     io.to(userSocketId).emit("getNotification", notification);
   });
