@@ -17,6 +17,8 @@ router.get("/getLoggedUserInfo", protect, getLoggedUserInfo);
 
 router.get("/searchUsers", searchUsers);
 
+router.get("/searchSuggestions", searchUsers);
+
 router.put("/editUserInfo", editUserInfo);
 
 router.get("/getUserInfo/:id", protect, getUserInfo);

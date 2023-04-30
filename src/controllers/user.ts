@@ -195,7 +195,36 @@ const searchUsers = asyncHandler(async (req: Request, res: Response) => {
   const searchTerm = `%${q}%`;
 
   let qu =
-    "SELECT `id`,`first_name`,`last_name`,`image` FROM users WHERE `first_name` LIKE ? OR `last_name` LIKE ?";
+    "SELECT `id`,`first_name`,`last_name`,`image`,`country`,`city` FROM users WHERE `first_name` LIKE ? OR `last_name` LIKE ?";
+
+  let data = await query(qu, [searchTerm, searchTerm]);
+
+  data.forEach((user: any) => {
+    if (user.image) {
+      minioClient.presignedUrl(
+        "GET",
+        "social-media",
+        user.image,
+        24 * 60 * 60,
+        function (err: Error | null, presignedUrl: string) {
+          if (!err) {
+            user.image = presignedUrl;
+          }
+        }
+      );
+    }
+  });
+
+  res.status(200).json(data);
+});
+
+const searchSuggestions = asyncHandler(async (req: Request, res: Response) => {
+  const { q } = req.query;
+
+  const searchTerm = `%${q}%`;
+
+  let qu =
+    "SELECT `id`,`first_name`,`last_name`,`image` FROM users WHERE `first_name` LIKE ? OR `last_name` LIKE ? LIMIT 5";
 
   let data = await query(qu, [searchTerm, searchTerm]);
 
@@ -226,4 +255,5 @@ export {
   searchUsers,
   getUsersByShares,
   editUserInfo,
+  searchSuggestions,
 };
