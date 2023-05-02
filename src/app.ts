@@ -119,6 +119,18 @@ io.on("connection", (socket: any) => {
     }
   );
 
+  //send information when when user rejects friend request
+
+  socket.on("rejectFriendRequest", (receiverId: number) => {
+    const userSocketId = getUser(receiverId);
+
+    console.log(userSocketId);
+
+    if (!userSocketId) return;
+
+    io.to(userSocketId).emit("rejectedFriendRequest", true);
+  });
+
   //send information when user gets unfriended
   socket.on("removeFromFriends", (receiverId: number) => {
     const userSocketId = getUser(receiverId);
