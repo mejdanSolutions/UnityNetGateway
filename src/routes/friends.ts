@@ -5,6 +5,7 @@ import {
   checkFriendsStatus,
   getFriendRequests,
   getFriendRequestsCount,
+  rejectFriendRequest,
   removeFromFriends,
   sendFriendRequest,
 } from "../controllers/friends";
@@ -17,6 +18,8 @@ router.get("/getFriendRequests", protect, getFriendRequests);
 router.get("/checkFriendsStatus/:id", protect, checkFriendsStatus);
 
 router.get("/getFriendRequestsCount", protect, getFriendRequestsCount);
+
+router.delete("/rejectFriendRequest/:senderId", protect, rejectFriendRequest);
 
 router.get("/checkFriendRequestStatus/:id", protect, checkFriendRequestStatus);
 
