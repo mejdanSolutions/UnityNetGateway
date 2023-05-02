@@ -130,6 +130,19 @@ const getFriendRequestsCount = asyncHandler(
   }
 );
 
+const rejectFriendRequest = asyncHandler(
+  async (req: Request, res: Response) => {
+    const receiverId = req.user?.id;
+    const senderId = req.params.senderId;
+
+    let q = "DELETE FROM friend_requests WHERE `receiver`= ? AND `sender`= ?";
+
+    await query(q, [receiverId, senderId]);
+
+    res.status(200).json("Friend request rejected");
+  }
+);
+
 export {
   sendFriendRequest,
   getFriendRequests,
@@ -138,4 +151,5 @@ export {
   removeFromFriends,
   checkFriendRequestStatus,
   getFriendRequestsCount,
+  rejectFriendRequest,
 };
