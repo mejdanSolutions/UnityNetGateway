@@ -133,20 +133,22 @@ const createPost = asyncHandler(async (req: Request, res: Response) => {
 
 const getPosts = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-  const page = parseInt(req.params.page);
-  const offset = (page - 1) * 10;
+  const page = req.params.page;
+  const offset = (+page - 1) * 10;
 
   //send posts that user and his friends own
   let q = `SELECT DISTINCT p.id, p.user_id, p.text_content, p.photo, p.type, p.created_at, p.updated_at,p.edited,p.profile_id, u.first_name, u.last_name, u.image
   FROM posts p
   INNER JOIN users u ON u.id = p.user_id
   LEFT JOIN friends f ON (f.personA = u.id OR f.personB = u.id)
-  WHERE u.id = ? AND p.profile_id IS NULL
+  WHERE (u.id = ? AND p.profile_id IS NULL)
   OR (f.personA = ? AND p.profile_id IS NULL) OR (f.personB = ? AND p.profile_id IS NULL)
   ORDER BY p.created_at DESC
-  LIMIT 10 OFFSET ${offset}`;
+  LIMIT 10 OFFSET ?`;
 
-  let data = await query(q, [userId, userId, userId]);
+  let data = await query(q, [userId, userId, userId, offset + ""]);
+
+  console.log(data);
 
   data.forEach((post: any) => {
     if (post.photo) {
