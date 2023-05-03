@@ -44,7 +44,7 @@ const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
 
 const editUserInfo = asyncHandler(async (req: Request, res: Response) => {
   const { firstName, lastName, city, country } = req.body;
-  const userId = 1;
+  const userId = req.user?.id;
 
   if (!firstName) {
     res.status(404);
