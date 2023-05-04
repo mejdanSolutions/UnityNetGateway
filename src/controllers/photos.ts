@@ -97,7 +97,7 @@ const getProfilePhotos = asyncHandler(async (req: Request, res: Response) => {
   const type = "profile";
 
   let q =
-    "SELECT p.id, p.user_id ,p.text_content,p.photo,p.created_at,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE `type`=? AND `user_id`= ? ORDER BY p.created_at DESC";
+    "SELECT p.id, p.user_id ,p.text_content,p.photo,p.created_at,p.edited,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE `type`=? AND `user_id`= ? ORDER BY p.created_at DESC";
 
   let data = await query(q, [type, userId]);
 
@@ -138,7 +138,7 @@ const getCoverPhotos = asyncHandler(async (req: Request, res: Response) => {
   const type = "cover";
 
   let q =
-    "SELECT p.id, p.user_id ,p.text_content,p.photo,p.created_at,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE `type`=? AND `user_id`= ? ORDER BY p.created_at DESC";
+    "SELECT p.id, p.user_id ,p.text_content,p.photo,p.created_at,p.edited,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE `type`=? AND `user_id`= ? ORDER BY p.created_at DESC";
 
   let data = await query(q, [type, userId]);
 
@@ -205,7 +205,7 @@ const getPhoto = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.params.userId;
 
   let q =
-    "SELECT p.id, p.user_id ,p.text_content,p.photo,p.created_at,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE p.id =? AND p.user_id= ?";
+    "SELECT p.id, p.user_id ,p.text_content,p.photo,p.created_at,p.edited,u.first_name,u.last_name,u.image FROM posts p INNER JOIN users u ON p.user_id=u.id WHERE p.id =? AND p.user_id= ?";
 
   let data = await query(q, [photoId, userId]);
 
