@@ -39,7 +39,7 @@ router.get("/getUserPosts/:id/:page", protect, getUserPosts);
 
 router.get("/isPostLiked/:id", protect, isPostLiked);
 
-router.delete("/deletePost/:id", protect, deletePost);
+router.put("/deletePost/:id", protect, deletePost);
 
 router.put("/editPost/:id", protect, editPost);
 

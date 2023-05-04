@@ -184,8 +184,60 @@ const getPosts = asyncHandler(async (req: Request, res: Response) => {
 const deletePost = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
   const userId = req.user?.id;
-  let q = "DELETE FROM posts WHERE `id`= ? AND `user_id` = ?";
-  let data = await query(q, [postId, userId]);
+  const type = req.body.type;
+  let bucketName = "social-media";
+
+  console.log("type", type);
+
+  let q;
+  let data;
+
+  if (type === "profile") {
+    //check if its is current profile photo
+    q =
+      "SELECT u.image FROM users u INNER JOIN posts p ON u.image=p.photo WHERE u.id = ?";
+
+    data = await query(q, [userId]);
+
+    if (data) {
+      q = "UPDATE users SET `image`= NULL WHERE id = ?";
+      await query(q, [userId]);
+    }
+  }
+
+  if (type === "cover") {
+    //check if its is current cover photo
+    q =
+      "SELECT u.cover_image FROM users u INNER JOIN posts p ON u.cover_image=p.photo WHERE u.id = ?";
+
+    data = await query(q, [userId]);
+
+    if (data) {
+      q = "UPDATE users SET `cover_image`= NULL WHERE id = ?";
+      await query(q, [userId]);
+    }
+  }
+
+  //delete photo from minio bucket
+  q = "SELECT photo FROM posts WHERE `id`= ? AND `user_id`= ?";
+
+  data = await query(q, [postId, userId]);
+
+  if (data) {
+    let objectName = data[0].photo;
+
+    minioClient.removeObject(bucketName, objectName, (err) => {
+      if (err) {
+        console.error(`Error deleting object ${objectName}: ${err}`);
+      } else {
+        console.log(`Object ${objectName} deleted successfully`);
+      }
+    });
+  }
+
+  //delete post
+  q = "DELETE FROM posts WHERE `id`= ? AND `user_id` = ?";
+  data = await query(q, [postId, userId]);
 
   res.status(200).json("Post succesfully deleted");
 });
