@@ -1,13 +1,13 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 import query from "../db";
+import { minioClient } from "../app";
 
 const createNotification = asyncHandler(async (req: Request, res: Response) => {
   const senderId = req.user?.id;
   const receiverId = req.params.receiverId;
   const postId = req.params.postId;
 
-  console.log(postId, "postId");
   const { type } = req.body;
 
   let q;
@@ -39,6 +39,24 @@ const getNotifications = asyncHandler(async (req: Request, res: Response) => {
     INNER JOIN notifications n ON u.id=n.sender_id WHERE n.receiver_id=? ORDER BY created_at DESC`;
 
   let data = await query(q, [receiverId]);
+
+  data.forEach((post: any) => {
+    if (post.image) {
+      minioClient.presignedUrl(
+        "GET",
+        "social-media",
+        post.image,
+        24 * 60 * 60,
+        function (err: Error | null, presignedUrl: string) {
+          if (!err) {
+            post.image = presignedUrl;
+          } else {
+            console.log("Error generating minio url : ", err);
+          }
+        }
+      );
+    }
+  });
 
   res.status(200).json(data);
 });
