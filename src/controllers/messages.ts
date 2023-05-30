@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 import query from "../db";
+import { minioClient } from "../app";
 
 const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   const senderId = req.params.senderId;
@@ -79,7 +80,23 @@ const getUserConversations = asyncHandler(
 
     let data = await query(q, [userId, userId, userId]);
 
-    console.log(data);
+    data.forEach((post: any) => {
+      if (post.image) {
+        minioClient.presignedUrl(
+          "GET",
+          "social-media",
+          post.image,
+          24 * 60 * 60,
+          function (err: Error | null, presignedUrl: string) {
+            if (!err) {
+              post.image = presignedUrl;
+            } else {
+              console.log("Error generating minio url : ", err);
+            }
+          }
+        );
+      }
+    });
 
     res.json(data);
   }

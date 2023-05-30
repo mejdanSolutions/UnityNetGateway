@@ -13,9 +13,10 @@ const register = asyncHandler(async (req: Request, res: Response) => {
   let q = "SELECT `id` FROM users WHERE `email`= ?";
 
   let result = await query(q, [email]);
-  if (result.length) {
-    res.status(400).json("User with this email already exists");
-    return;
+
+  if (result.length > 0) {
+    res.status(400);
+    throw new Error("User with this email already exists");
   }
 
   if (password.length < 6) {
@@ -45,12 +46,18 @@ const login = asyncHandler(async (req: Request, res: Response) => {
   let q = "SELECT `id`,`password` FROM users WHERE `email` = ?";
 
   let data = await query(q, [email]);
-  if (data.length === 0)
-    res.status(400).json("User with this email does not exist");
+
+  if (data.length === 0) {
+    res.status(400);
+    throw new Error("Email or password is not valid");
+  }
 
   const isPasswordCorrect = bcrypt.compareSync(password, data[0].password);
 
-  if (!isPasswordCorrect) res.status(400).json("Incorrect email or password");
+  if (!isPasswordCorrect) {
+    res.status(400);
+    throw new Error("Email or password is not valid");
+  }
 
   const token = jwt.sign({ id: data[0].id }, process.env.JWT_SECRET!);
 

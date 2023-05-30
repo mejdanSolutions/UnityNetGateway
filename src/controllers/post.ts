@@ -80,6 +80,8 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
         function (err: Error | null, presignedUrl: string) {
           if (!err) {
             post.photo = presignedUrl;
+          } else {
+            console.log("Error generating minio url : ", err);
           }
         }
       );
@@ -93,6 +95,8 @@ const getUserPosts = asyncHandler(async (req: Request, res: Response) => {
         function (err: Error | null, presignedUrl: string) {
           if (!err) {
             post.image = presignedUrl;
+          } else {
+            console.log("Error generating minio url : ", err);
           }
         }
       );
@@ -148,8 +152,6 @@ const getPosts = asyncHandler(async (req: Request, res: Response) => {
 
   let data = await query(q, [userId, userId, userId, offset + ""]);
 
-  console.log(data);
-
   data.forEach((post: any) => {
     if (post.photo) {
       minioClient.presignedUrl(
@@ -160,10 +162,13 @@ const getPosts = asyncHandler(async (req: Request, res: Response) => {
         function (err: Error | null, presignedUrl: string) {
           if (!err) {
             post.photo = presignedUrl;
+          } else {
+            console.log("Error generating minio url : ", err);
           }
         }
       );
-    } else if (post.image) {
+    }
+    if (post.image) {
       minioClient.presignedUrl(
         "GET",
         "social-media",
@@ -172,6 +177,8 @@ const getPosts = asyncHandler(async (req: Request, res: Response) => {
         function (err: Error | null, presignedUrl: string) {
           if (!err) {
             post.image = presignedUrl;
+          } else {
+            console.log("Error generating minio url : ", err);
           }
         }
       );
@@ -182,12 +189,12 @@ const getPosts = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const deletePost = asyncHandler(async (req: Request, res: Response) => {
-  const postId = req.params.id;
+  const postId = parseInt(req.params.id);
   const userId = req.user?.id;
   const type = req.body.type;
   let bucketName = "social-media";
 
-  console.log("type", type);
+  console.log(postId);
 
   let q;
   let data;
@@ -223,7 +230,7 @@ const deletePost = asyncHandler(async (req: Request, res: Response) => {
 
   data = await query(q, [postId, userId]);
 
-  if (data) {
+  if (data[0].photo !== null) {
     let objectName = data[0].photo;
 
     minioClient.removeObject(bucketName, objectName, (err) => {
@@ -236,10 +243,14 @@ const deletePost = asyncHandler(async (req: Request, res: Response) => {
   }
 
   //delete post
-  q = "DELETE FROM posts WHERE `id`= ? AND `user_id` = ?";
-  data = await query(q, [postId, userId]);
+  try {
+    q = "DELETE FROM posts WHERE `id`= ? AND `user_id` = ?";
+    data = await query(q, [postId, userId]);
 
-  res.status(200).json("Post succesfully deleted");
+    res.status(200).json("Post succesfully deleted");
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 const editPost = asyncHandler(async (req: Request, res: Response) => {
@@ -299,6 +310,19 @@ const getPost = asyncHandler(async (req: Request, res: Response) => {
      INNER JOIN users u ON p.user_id=u.id WHERE p.id = ?`;
 
   let data = await query(q, [postId]);
+
+  minioClient.presignedUrl(
+    "GET",
+    "social-media",
+    data[0].image,
+    24 * 60 * 60,
+    function (err: Error | null, presignedUrl: string) {
+      if (!err) {
+        data[0].image = presignedUrl;
+        data[0].photo = presignedUrl;
+      }
+    }
+  );
 
   res.status(200).json(data[0]);
 });
@@ -373,8 +397,6 @@ const addPhoto = asyncHandler(async (req: Request, res: Response) => {
         console.log(error);
         return;
       }
-
-      console.log(req.file);
     }
   );
 
@@ -415,21 +437,22 @@ const getSharedPost = asyncHandler(async (req: Request, res: Response) => {
   q = `SELECT p.id,p.user_id,p.text_content, p.photo, p.type,u.first_name, u.last_name,u.image, p.created_at FROM posts p
      INNER JOIN users u ON p.user_id=u.id WHERE p.id=?`;
 
-  data = await query(q, [data[0].child_id]);
+  let result = await query(q, [data[0].child_id]);
 
   minioClient.presignedUrl(
     "GET",
     "social-media",
-    data[0].image,
+    result[0].image,
     24 * 60 * 60,
     function (err: Error | null, presignedUrl: string) {
       if (!err) {
-        data[0].image = presignedUrl;
+        result[0].image = presignedUrl;
+        result[0].photo = presignedUrl;
       }
     }
   );
 
-  res.json(data);
+  res.json(result);
 });
 
 export {

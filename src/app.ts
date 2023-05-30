@@ -88,7 +88,6 @@ io.on("connection", (socket: any) => {
   socket.on(
     "sendMessage",
     ({ sender_id, receiverId, message, conversationId }: Message) => {
-      console.log(message);
       const userSocketId = getUser(receiverId);
 
       if (!userSocketId) return;
@@ -124,8 +123,6 @@ io.on("connection", (socket: any) => {
   socket.on("rejectFriendRequest", (receiverId: number) => {
     const userSocketId = getUser(receiverId);
 
-    console.log(userSocketId);
-
     if (!userSocketId) return;
 
     io.to(userSocketId).emit("rejectedFriendRequest", true);
@@ -160,7 +157,6 @@ io.on("connection", (socket: any) => {
 
   //when users disconnects
   socket.on("disconnect", () => {
-    console.log("user disconnected");
     removeUser(socket.id);
     io.emit("getUsers", Array.from(users.keys()));
   });
@@ -175,7 +171,6 @@ export let minioClient = new Minio.Client({
 });
 
 app.use(BodyParser.json({ limit: "4mb" }));
-app.use(errorHandler);
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -204,3 +199,5 @@ minioClient.bucketExists("social-media", function (error) {
     console.log("Server started on port :", process.env.PORT);
   });
 });
+
+app.use(errorHandler);
