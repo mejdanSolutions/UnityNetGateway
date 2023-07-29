@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { minioClient } from "../app";
 import shortUUID from "short-uuid";
 import query from "../db";
+import sharp from "sharp";
 
 const uploadProfilePicture = asyncHandler(
   async (req: Request, res: Response) => {
@@ -16,20 +17,30 @@ const uploadProfilePicture = asyncHandler(
 
     let uuid = shortUUID.generate();
 
-    minioClient.fPutObject(
-      "social-media",
-      uuid,
-      req.file?.path,
-      {
-        "Content-Type": "application/octet-stream",
-      },
-      function (error: Error | null, etag: any) {
-        if (error) {
-          console.log(error);
-          return;
+    try {
+      const processedImageBuffer = await sharp(req.file.path)
+        .jpeg({ quality: 15 })
+        .toBuffer();
+
+      minioClient.putObject(
+        "social-media",
+        uuid,
+        processedImageBuffer,
+        (err, etag) => {
+          if (err) {
+            console.error("Error uploading to MinIO:", err);
+            return res
+              .status(500)
+              .json({ error: "Failed to upload the image to MinIO" });
+          }
+
+          console.log("Image uploaded to MinIO successfully");
         }
-      }
-    );
+      );
+    } catch (error) {
+      console.error("Error processing the image:", error);
+      res.status(500).json({ error: "Failed to process the image" });
+    }
 
     let q =
       "INSERT INTO posts (`user_id`, `text_content`, `photo`, `type`) VALUES (?, ?, ?, ?)";
@@ -60,20 +71,30 @@ const uploadCoverPicture = asyncHandler(async (req: Request, res: Response) => {
 
   let uuid = shortUUID.generate();
 
-  minioClient.fPutObject(
-    "social-media",
-    uuid,
-    req.file?.path,
-    {
-      "Content-Type": "application/octet-stream",
-    },
-    function (error: Error | null, etag: any) {
-      if (error) {
-        console.log(error);
-        return;
+  try {
+    const processedImageBuffer = await sharp(req.file.path)
+      .jpeg({ quality: 15 })
+      .toBuffer();
+
+    minioClient.putObject(
+      "social-media",
+      uuid,
+      processedImageBuffer,
+      (err, etag) => {
+        if (err) {
+          console.error("Error uploading to MinIO:", err);
+          return res
+            .status(500)
+            .json({ error: "Failed to upload the image to MinIO" });
+        }
+
+        console.log("Image uploaded to MinIO successfully");
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.error("Error processing the image:", error);
+    res.status(500).json({ error: "Failed to process the image" });
+  }
 
   let q =
     "INSERT INTO posts (`user_id`, `text_content`, `photo`, `type`) VALUES (?, ?, ?, ?)";
@@ -176,6 +197,7 @@ const getCoverPhotos = asyncHandler(async (req: Request, res: Response) => {
 
 const deleteProfilePhoto = asyncHandler(async (req: Request, res: Response) => {
   const photoId = req.params.id;
+  const userId = req.user?.id;
 
   //check if its is current profile photo
   let q = "SELECT u.image FROM users u INNER JOIN photos p ON u.image=p.photo";
@@ -183,8 +205,8 @@ const deleteProfilePhoto = asyncHandler(async (req: Request, res: Response) => {
   let data = await query(q, [photoId]);
 
   if (data) {
-    q = "UPDATE users SET `image`= NULL WHERE `image`= ?";
-    let result = await query(q, [data[0].image]);
+    q = "UPDATE users SET `image`= NULL WHERE `image`= ? AND `id`= ?";
+    let result = await query(q, [data[0].image, userId]);
   }
 
   // delete from photos

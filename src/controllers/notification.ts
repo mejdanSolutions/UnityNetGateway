@@ -10,19 +10,9 @@ const createNotification = asyncHandler(async (req: Request, res: Response) => {
 
   const { type } = req.body;
 
-  let q;
-  let data;
-
-  if (postId) {
-    q =
-      "INSERT INTO notifications (`sender_id`, `receiver_id`, `type`, `post_id`) VALUES (?, ?, ?, ?)";
-    data = await query(q, [senderId, receiverId, type, postId]);
-  }
-
-  q =
-    "INSERT INTO notifications (`sender_id`, `receiver_id`, `type`) VALUES (?, ?, ?)";
-
-  data = await query(q, [senderId, receiverId, type]);
+  let q =
+    "INSERT INTO notifications (`sender_id`, `receiver_id`, `type`, `post_id`) VALUES (?, ?, ?, ?)";
+  let data = await query(q, [senderId, receiverId, type, postId || null]);
 
   if (!data.affectedRows) {
     res.status(500);

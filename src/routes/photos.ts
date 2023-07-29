@@ -32,6 +32,6 @@ router.get("/getUserProfilePhotos/:id", getProfilePhotos);
 
 router.get("/getUserCoverPhotos/:id", getCoverPhotos);
 
-router.delete("/deleteProfilePhoto/:id", deleteProfilePhoto);
+router.delete("/deleteProfilePhoto/:id", protect, deleteProfilePhoto);
 
 export default router;
