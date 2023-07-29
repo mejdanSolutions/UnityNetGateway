@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import query from "../db";
 import { minioClient } from "../app";
 import shortUUID from "short-uuid";
+import sharp from "sharp";
+import mime from "mime";
 
 const getSharesCount = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.params.id;
@@ -317,8 +319,29 @@ const getPost = asyncHandler(async (req: Request, res: Response) => {
     data[0].image,
     24 * 60 * 60,
     function (err: Error | null, presignedUrl: string) {
-      if (!err) {
+      if (err) {
+        console.log("Error generating minio url : ", err);
+        return;
+      }
+
+      if (data[0].image) {
         data[0].image = presignedUrl;
+      }
+    }
+  );
+
+  minioClient.presignedUrl(
+    "GET",
+    "social-media",
+    data[0].photo,
+    24 * 60 * 60,
+    function (err: Error | null, presignedUrl: string) {
+      if (err) {
+        console.log("Error generating minio url : ", err);
+        return;
+      }
+
+      if (data[0].photo) {
         data[0].photo = presignedUrl;
       }
     }
@@ -383,22 +406,38 @@ const addPhoto = asyncHandler(async (req: Request, res: Response) => {
     throw new Error("Photo not found");
   }
 
-  let uuid = shortUUID.generate();
+  const { path, mimetype } = req.file;
 
-  minioClient.fPutObject(
-    "social-media",
-    uuid,
-    req.file?.path,
-    {
-      "Content-Type": "application/octet-stream",
-    },
-    function (error: Error | null, etag: any) {
-      if (error) {
-        console.log(error);
-        return;
+  const processedImageBuffer = await sharp(path).resize(800, 800).toBuffer();
+
+  console.log("image", processedImageBuffer);
+
+  const uuid = shortUUID.generate();
+
+  try {
+    const processedImageBuffer = await sharp(req.file.path)
+      .jpeg({ quality: 15 })
+      .toBuffer();
+
+    minioClient.putObject(
+      "social-media",
+      uuid,
+      processedImageBuffer,
+      (err, etag) => {
+        if (err) {
+          console.error("Error uploading to MinIO:", err);
+          return res
+            .status(500)
+            .json({ error: "Failed to upload the image to MinIO" });
+        }
+
+        console.log("Image uploaded to MinIO successfully");
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.error("Error processing the image:", error);
+    res.status(500).json({ error: "Failed to process the image" });
+  }
 
   let q;
   let values;
@@ -445,8 +484,29 @@ const getSharedPost = asyncHandler(async (req: Request, res: Response) => {
     result[0].image,
     24 * 60 * 60,
     function (err: Error | null, presignedUrl: string) {
-      if (!err) {
+      if (err) {
+        console.log("Error generating minio url : ", err);
+        return;
+      }
+
+      if (result[0].image) {
         result[0].image = presignedUrl;
+      }
+    }
+  );
+
+  minioClient.presignedUrl(
+    "GET",
+    "social-media",
+    result[0].photo,
+    24 * 60 * 60,
+    function (err: Error | null, presignedUrl: string) {
+      if (err) {
+        console.log("Error generating minio url : ", err);
+        return;
+      }
+
+      if (result[0].photo) {
         result[0].photo = presignedUrl;
       }
     }

@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 import query from "../db";
+import { minioClient } from "../app";
 
 const sendFriendRequest = asyncHandler(async (req: Request, res: Response) => {
   // user that is sending the friend request
@@ -27,8 +28,26 @@ const getFriendRequests = asyncHandler(async (req: Request, res: Response) => {
   // "SELECT u.id,u.first_name,u.last_name FROM friends f JOIN users u ON u.id=f.personA WHERE f.personB=?
 
   let q =
-    "SELECT u.id, u.first_name, u.last_name FROM friend_requests f JOIN users u ON u.id=f.sender WHERE f.receiver=?";
+    "SELECT u.id, u.first_name, u.last_name, u.image FROM friend_requests f JOIN users u ON u.id=f.sender WHERE f.receiver=?";
   let data = await query(q, [userId]);
+
+  data.forEach((post: any) => {
+    if (post.image) {
+      minioClient.presignedUrl(
+        "GET",
+        "social-media",
+        post.image,
+        24 * 60 * 60,
+        function (err: Error | null, presignedUrl: string) {
+          if (!err) {
+            post.image = presignedUrl;
+          } else {
+            console.log("Error generating minio url : ", err);
+          }
+        }
+      );
+    }
+  });
 
   res.status(200).json(data);
 });
